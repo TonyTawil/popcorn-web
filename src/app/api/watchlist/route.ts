@@ -4,6 +4,12 @@ import { authOptions } from '@/lib/auth.config';
 import User from '@/models/User';
 import connectDB from '@/db/mongodb';
 
+interface WatchlistMovie {
+  movieId: string;
+  title: string;
+  coverImage: string;
+}
+
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -61,7 +67,7 @@ export async function POST(req: Request) {
     switch (type) {
       case 'add': {
         const isMovieInWatchlist = user.watchList.some(
-          (movie) => movie.movieId === movieId
+          (movie: WatchlistMovie) => movie.movieId === movieId
         );
 
         if (isMovieInWatchlist) {
@@ -82,7 +88,7 @@ export async function POST(req: Request) {
 
       case 'remove': {
         user.watchList = user.watchList.filter(
-          (movie) => movie.movieId !== movieId
+          (movie: WatchlistMovie) => movie.movieId !== movieId
         );
         await user.save();
 
