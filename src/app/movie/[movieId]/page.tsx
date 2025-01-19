@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import MovieGrid from "@/components/movies/MovieGrid";
@@ -41,6 +41,7 @@ interface MovieData {
 export default function MovieDetailsPage() {
   const { movieId } = useParams();
   const { data: session } = useSession();
+  const router = useRouter();
   const [data, setData] = useState<MovieData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,9 +71,33 @@ export default function MovieDetailsPage() {
     }
   }, [movieId]);
 
+  useEffect(() => {
+    const checkWatchlist = async () => {
+      if (!session?.user) return;
+
+      try {
+        const res = await fetch("/api/watchlist");
+        const data = await res.json();
+
+        if (res.ok) {
+          setIsInWatchlist(
+            data.watchList.some(
+              (movie: any) => movie.movieId === Number(movieId)
+            )
+          );
+        }
+      } catch (err) {
+        console.error("Error checking watchlist:", err);
+      }
+    };
+
+    checkWatchlist();
+  }, [session, movieId]);
+
   const handleWatchlistToggle = async () => {
     if (!session) {
-      // Handle not logged in state
+      // Redirect to login page with return URL
+      router.push(`/login?returnUrl=/movie/${movieId}`);
       return;
     }
 
@@ -91,12 +116,14 @@ export default function MovieDetailsPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to update watchlist");
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update watchlist");
       }
 
       setIsInWatchlist(!isInWatchlist);
     } catch (err) {
       console.error("Error updating watchlist:", err);
+      // You might want to show an error toast/notification here
     }
   };
 
@@ -199,14 +226,16 @@ export default function MovieDetailsPage() {
                 </a>
               )}
 
-              {session && (
-                <button
-                  onClick={handleWatchlistToggle}
-                  className="border border-primary hover:bg-primary/10 text-primary px-6 py-2 rounded-full transition-colors"
-                >
-                  {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-                </button>
-              )}
+              <button
+                onClick={handleWatchlistToggle}
+                className="border border-primary hover:bg-primary/10 text-primary px-6 py-2 rounded-full transition-colors"
+              >
+                {session
+                  ? isInWatchlist
+                    ? "Remove from Watchlist"
+                    : "Add to Watchlist"
+                  : "Sign in to add to Watchlist"}
+              </button>
             </div>
           </div>
         </div>
