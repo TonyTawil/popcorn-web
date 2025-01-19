@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --primary: #D84315;
+  --primary-dark: #BF360C;
+  --accent: #FFC107;
+  --white: #FFFFFF;
+  --black: #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--white);
+  background-color: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .bg-background {
+    background-color: var(--background);
+  }
+  
+  .bg-primary {
+    background-color: var(--primary);
+  }
+  
+  .hover\:bg-primary-dark:hover {
+    background-color: var(--primary-dark);
+  }
+  
+  .text-primary {
+    color: var(--primary);
+  }
+  
+  .hover\:text-accent:hover {
+    color: var(--accent);
+  }
+  
+  .focus\:ring-primary:focus {
+    --tw-ring-color: var(--primary);
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
