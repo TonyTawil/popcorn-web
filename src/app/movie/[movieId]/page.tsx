@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import MovieGrid from "@/components/movies/MovieGrid";
 import MovieGridSkeleton from "@/components/loading/MovieGridSkeleton";
 import type { Movie } from "@/types/movie";
+import Avatar from "@/components/ui/Avatar";
 
 interface MovieDetails extends Movie {
   backdrop_path: string;
@@ -232,16 +233,16 @@ export default function MovieDetailsPage() {
               (person) => (
                 <div key={person.id} className="text-center">
                   <div className="relative aspect-[2/3] mb-2">
-                    <Image
-                      src={
-                        person.profile_path
-                          ? `https://image.tmdb.org/t/p/w500${person.profile_path}`
-                          : "/placeholder-avatar.png"
-                      }
-                      alt={person.name}
-                      fill
-                      className="rounded-lg object-cover"
-                    />
+                    {person.profile_path ? (
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w500${person.profile_path}`}
+                        alt={person.name}
+                        fill
+                        className="rounded-lg object-cover"
+                      />
+                    ) : (
+                      <Avatar name={person.name} />
+                    )}
                   </div>
                   <h3 className="text-white font-medium truncate">
                     {person.name}
