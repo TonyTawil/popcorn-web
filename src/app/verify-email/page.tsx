@@ -7,14 +7,15 @@ import Link from "next/link";
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<
+    "initial" | "loading" | "success" | "error"
+  >("initial");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     const verifyEmail = async () => {
+      const token = searchParams.get("token");
+
       if (!token) {
         setStatus("error");
         setMessage("No verification token found");
@@ -22,6 +23,7 @@ export default function VerifyEmailPage() {
       }
 
       try {
+        setStatus("loading");
         const res = await fetch(`/api/auth/verify-email?token=${token}`);
         const data = await res.json();
 
@@ -42,10 +44,10 @@ export default function VerifyEmailPage() {
       }
     };
 
-    if (token) {
+    if (status === "initial") {
       verifyEmail();
     }
-  }, [token, router]);
+  }, [searchParams, router, status]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -129,7 +131,7 @@ export default function VerifyEmailPage() {
               <div className="mt-4">
                 <Link
                   href="/login"
-                  className="text-primary hover:text-primary-dark transition-colors"
+                  className="text-primary hover:text-accent transition-colors"
                 >
                   Return to login
                 </Link>
