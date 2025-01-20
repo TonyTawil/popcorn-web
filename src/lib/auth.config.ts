@@ -10,40 +10,64 @@ export const authOptions: NextAuthOptions = {
       name: 'Credentials',
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        isVerification: { label: "Is Verification", type: "text" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please enter all fields')
-        }
+        try {
+          if (!credentials?.email) {
+            throw new Error('Email is required')
+          }
 
-        await connectDB()
-        
-        const user = await User.findOne({ email: credentials.email })
-        
-        if (!user) {
-          throw new Error('No user found')
-        }
+          await connectDB()
+          
+          const user = await User.findOne({ email: credentials.email })
+          
+          if (!user) {
+            throw new Error('No user found')
+          }
 
-        if (!user.isEmailVerified) {
-          throw new Error('Please verify your email first')
-        }
+          // Handle email verification login
+          if (credentials.isVerification === 'true') {
+            if (user.isEmailVerified) {
+              return {
+                id: user._id.toString(),
+                email: user.email,
+                name: `${user.firstName} ${user.lastName}`,
+                image: user.profilePicture,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                isEmailVerified: user.isEmailVerified
+              }
+            }
+            throw new Error('Email not verified')
+          }
 
-        const isValid = await bcrypt.compare(credentials.password, user.password)
-        
-        if (!isValid) {
-          throw new Error('Invalid credentials')
-        }
+          // Regular password login
+          if (!user.isEmailVerified) {
+            throw new Error('Please verify your email first')
+          }
 
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          image: user.profilePicture,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          isEmailVerified: user.isEmailVerified,
+          const isValid = await bcrypt.compare(credentials.password, user.password)
+
+          if (!isValid) {
+            throw new Error('Invalid credentials')
+          }
+
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+            image: user.profilePicture,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            isEmailVerified: user.isEmailVerified
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
+          throw error
         }
       }
     })
@@ -84,5 +108,6 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
+  debug: true, // Enable debug mode to see more detailed logs
   secret: process.env.NEXTAUTH_SECRET,
 } 

@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
+import { signIn } from 'next-auth/react';
 import User from '@/models/User';
 import connectDB from '@/db/mongodb';
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const token = searchParams.get('token');
+    const { token } = await req.json();
 
     if (!token) {
-      return NextResponse.redirect(new URL('/verify-email?error=no-token', req.url));
+      return NextResponse.json(
+        { error: 'Verification token is required' },
+        { status: 400 }
+      );
     }
 
     await connectDB();
@@ -20,28 +23,30 @@ export async function GET(req: Request) {
     });
 
     if (!user) {
-      // Check if token was already used
-      const verifiedUser = await User.findOne({
-        emailVerificationToken: token
-      });
-
-      if (verifiedUser && verifiedUser.isEmailVerified) {
-        return NextResponse.redirect(new URL('/login?message=already-verified', req.url));
-      }
-
-      return NextResponse.redirect(new URL('/verify-email?error=invalid-token', req.url));
+      return NextResponse.json(
+        { error: 'Invalid or expired verification token' },
+        { status: 400 }
+      );
     }
 
     // Update user verification status
     user.isEmailVerified = true;
-    // Clear the verification token after successful verification
     user.emailVerificationToken = undefined;
     user.emailVerificationTokenExpiry = undefined;
     await user.save();
 
-    return NextResponse.redirect(new URL('/login?message=verification-success', req.url));
+    return NextResponse.json({
+      message: 'Email verified successfully',
+      verified: true,
+      user: {
+        email: user.email
+      }
+    });
   } catch (error) {
     console.error('Verification error:', error);
-    return NextResponse.redirect(new URL('/verify-email?error=server-error', req.url));
+    return NextResponse.json(
+      { error: 'Failed to verify email' },
+      { status: 500 }
+    );
   }
 } 

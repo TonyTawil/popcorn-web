@@ -1,156 +1,117 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
+import {
+  XCircleIcon,
+  CheckCircleIcon,
+  EnvelopeIcon,
+} from "@heroicons/react/24/outline";
 
-// Prevent static generation
-export const dynamic = "force-dynamic";
+// Remove page configuration exports since they're causing issues
+// We'll handle this differently
 
-function VerifyEmailContent() {
-  const router = useRouter();
+export default function VerifyEmail() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [status, setStatus] = useState<
-    "initial" | "loading" | "success" | "error"
-  >("initial");
-  const [message, setMessage] = useState("");
+    "waiting" | "loading" | "success" | "error"
+  >("waiting");
+  const [message, setMessage] = useState(
+    "Please check your email for the verification link"
+  );
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      const token = searchParams.get("token");
+    const token = searchParams.get("token");
 
-      if (!token) {
-        setStatus("error");
-        setMessage("No verification token found");
-        return;
-      }
+    if (!token) {
+      setStatus("waiting");
+      setMessage("Please check your email for the verification link");
+      return;
+    }
+
+    const verifyEmail = async () => {
+      setStatus("loading");
+      setMessage("Verifying your email...");
 
       try {
-        setStatus("loading");
-        const res = await fetch(`/api/auth/verify-email?token=${token}`);
-        const data = await res.json();
+        const response = await fetch("/api/auth/verify-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        });
 
-        if (!res.ok) {
-          throw new Error(data.error || "Verification failed");
+        const data = await response.json();
+
+        if (!response.ok) {
+          setStatus("error");
+          setMessage(data.error || "Verification failed");
+          return;
         }
 
         setStatus("success");
-        setMessage(data.message);
+        setMessage("Email verified successfully. Signing you in...");
 
-        // Redirect to login after successful verification
-        setTimeout(() => {
-          router.push("/login");
-        }, 3000);
-      } catch (err) {
+        // Sign in after verification
+        const result = await signIn("credentials", {
+          email: data.user.email,
+          isVerification: "true",
+          redirect: true,
+          callbackUrl: "/",
+        });
+      } catch (error) {
+        console.error("Verification error:", error);
         setStatus("error");
-        setMessage(err instanceof Error ? err.message : "Verification failed");
+        setMessage("An error occurred during verification");
       }
     };
 
-    if (status === "initial") {
-      verifyEmail();
-    }
-  }, [searchParams, router, status]);
+    verifyEmail();
+  }, [searchParams, router]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8 bg-gray-900/50 backdrop-blur-sm p-8 rounded-xl shadow-xl border border-gray-800">
-        <div className="text-center">
-          {status === "loading" && (
-            <>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Verifying your email...
-              </h2>
-              <div className="flex justify-center">
-                <svg
-                  className="animate-spin h-8 w-8 text-primary"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              </div>
-            </>
-          )}
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="max-w-md w-full mx-4">
+        <div className="bg-primary-dark rounded-lg shadow-xl p-8 text-center">
+          <div className="mb-6">
+            {status === "waiting" && (
+              <EnvelopeIcon className="h-12 w-12 text-accent mx-auto" />
+            )}
+            {status === "loading" && (
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-accent mx-auto" />
+            )}
+            {status === "success" && (
+              <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto" />
+            )}
+            {status === "error" && (
+              <XCircleIcon className="h-12 w-12 text-red-500 mx-auto" />
+            )}
+          </div>
 
-          {status === "success" && (
-            <>
-              <svg
-                className="mx-auto h-12 w-12 text-green-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                ></path>
-              </svg>
-              <h2 className="mt-4 text-2xl font-bold text-white">
-                Email Verified Successfully!
-              </h2>
-              <p className="mt-2 text-gray-400">
-                {message}
-                <br />
-                Redirecting to login...
-              </p>
-            </>
-          )}
+          <h1 className="text-2xl font-bold text-white mb-2">
+            {status === "waiting"
+              ? "Check Your Email"
+              : status === "success"
+              ? "Verification Successful"
+              : "Verification Failed"}
+          </h1>
+
+          <p className="text-gray-300 mb-6">{message}</p>
 
           {status === "error" && (
-            <>
-              <svg
-                className="mx-auto h-12 w-12 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
-              <h2 className="mt-4 text-2xl font-bold text-white">
-                Verification Failed
-              </h2>
-              <p className="mt-2 text-red-400">{message}</p>
-              <div className="mt-4">
-                <Link
-                  href="/login"
-                  className="text-primary hover:text-accent transition-colors"
-                >
-                  Return to login
-                </Link>
-              </div>
-            </>
+            <Link
+              href="/login"
+              className="inline-block bg-accent hover:bg-accent/90 text-white font-medium px-6 py-2 rounded-lg transition-colors"
+            >
+              Return to login
+            </Link>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-export default function VerifyEmailPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <VerifyEmailContent />
-    </Suspense>
   );
 }
