@@ -81,16 +81,28 @@ export default function Navbar() {
             </Link>
 
             {session && (
-              <Link
-                href="/watchlist"
-                className={`${
-                  pathname === "/watchlist"
-                    ? "text-accent"
-                    : "text-white hover:text-accent"
-                } transition-colors text-sm font-medium`}
-              >
-                My Watchlist
-              </Link>
+              <>
+                <Link
+                  href="/watchlist"
+                  className={`${
+                    pathname === "/watchlist"
+                      ? "text-accent"
+                      : "text-white hover:text-accent"
+                  } transition-colors text-sm font-medium`}
+                >
+                  My Watchlist
+                </Link>
+                <Link
+                  href="/watched"
+                  className={`${
+                    pathname === "/watched"
+                      ? "text-accent"
+                      : "text-white hover:text-accent"
+                  } transition-colors text-sm font-medium`}
+                >
+                  Watched Movies
+                </Link>
+              </>
             )}
 
             {/* Auth Section */}
@@ -166,16 +178,28 @@ export default function Navbar() {
               </Link>
 
               {session && (
-                <Link
-                  href="/watchlist"
-                  className={`${
-                    pathname === "/watchlist"
-                      ? "text-accent"
-                      : "text-white hover:text-accent"
-                  } transition-colors text-sm font-medium`}
-                >
-                  My Watchlist
-                </Link>
+                <>
+                  <Link
+                    href="/watchlist"
+                    className={`${
+                      pathname === "/watchlist"
+                        ? "text-accent"
+                        : "text-white hover:text-accent"
+                    } transition-colors text-sm font-medium`}
+                  >
+                    My Watchlist
+                  </Link>
+                  <Link
+                    href="/watched"
+                    className={`${
+                      pathname === "/watched"
+                        ? "text-accent"
+                        : "text-white hover:text-accent"
+                    } transition-colors text-sm font-medium`}
+                  >
+                    Watched Movies
+                  </Link>
+                </>
               )}
 
               {!session && (

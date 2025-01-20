@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -9,11 +9,9 @@ import {
   CheckCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
+import { Loader } from "@/components/ui/Loader";
 
-// Remove page configuration exports since they're causing issues
-// We'll handle this differently
-
-export default function VerifyEmail() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<
@@ -113,5 +111,13 @@ export default function VerifyEmail() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmail() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

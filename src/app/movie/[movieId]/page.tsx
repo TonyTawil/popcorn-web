@@ -8,6 +8,8 @@ import MovieGrid from "@/components/movies/MovieGrid";
 import MovieGridSkeleton from "@/components/loading/MovieGridSkeleton";
 import type { Movie } from "@/types/movie";
 import Avatar from "@/components/ui/Avatar";
+import { MovieCard } from "@/components/movies/MovieCard";
+import { Loader } from "@/components/ui/Loader";
 
 interface MovieDetails extends Movie {
   backdrop_path: string;
@@ -47,6 +49,7 @@ export default function MovieDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [showAllCast, setShowAllCast] = useState(false);
+  const [similarMovies, setSimilarMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
     const fetchMovieDetails = async () => {
@@ -125,6 +128,10 @@ export default function MovieDetailsPage() {
       console.error("Error updating watchlist:", err);
       // You might want to show an error toast/notification here
     }
+  };
+
+  const handleMovieClick = (movieId: number) => {
+    router.push(`/movie/${movieId}`);
   };
 
   if (isLoading) {
@@ -291,13 +298,17 @@ export default function MovieDetailsPage() {
             <h2 className="text-2xl font-bold text-white mb-6">
               Similar Movies
             </h2>
-            <MovieGrid
-              movies={similar.results.slice(0, 5)}
-              onMovieClick={(movieId) => {
-                window.scrollTo(0, 0);
-                window.location.href = `/movie/${movieId}`;
-              }}
-            />
+            <MovieGrid>
+              {similar.results.slice(0, 5).map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  id={movie.id}
+                  title={movie.title}
+                  posterPath={movie.poster_path}
+                  onClick={() => handleMovieClick(movie.id)}
+                />
+              ))}
+            </MovieGrid>
           </section>
         )}
       </div>

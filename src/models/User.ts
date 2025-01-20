@@ -1,6 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 
-interface IMovieList {
+export interface IMovieList {
   movieId: number;
   title: string;
   coverImage: string;

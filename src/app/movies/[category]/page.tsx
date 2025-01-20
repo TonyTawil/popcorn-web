@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import MovieGrid from "@/components/movies/MovieGrid";
 import MovieGridSkeleton from "@/components/loading/MovieGridSkeleton";
+import { MovieCard } from "@/components/movies/MovieCard";
+import { Loader } from "@/components/ui/Loader";
 import type { Movie } from "@/types/movie";
 
 type CategoryTitles = {
@@ -80,13 +82,26 @@ export default function AllMoviesPage() {
     );
   }
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   return (
     <div className="min-h-screen bg-background text-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">{categoryTitle}</h1>
 
         {!isLoading && movies.length > 0 && (
-          <MovieGrid movies={movies} onMovieClick={handleMovieClick} />
+          <MovieGrid>
+            {movies.map((movie) => (
+              <MovieCard
+                key={movie.id}
+                id={movie.id}
+                title={movie.title}
+                posterPath={movie.poster_path}
+              />
+            ))}
+          </MovieGrid>
         )}
         {isLoading && <MovieGridSkeleton count={20} />}
         {error && (
