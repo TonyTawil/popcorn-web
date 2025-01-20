@@ -7,6 +7,7 @@ import MovieGridSkeleton from "@/components/loading/MovieGridSkeleton";
 import { MovieCard } from "@/components/movies/MovieCard";
 import { Loader } from "@/components/ui/Loader";
 import type { Movie } from "@/types/movie";
+import { useSession } from "next-auth/react";
 
 type CategoryTitles = {
   [key: string]: string;
@@ -25,6 +26,7 @@ export default function AllMoviesPage() {
   const params = useParams();
   const router = useRouter();
   const category = params.category as string;
+  const session = useSession();
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,6 +101,28 @@ export default function AllMoviesPage() {
                 id={movie.id}
                 title={movie.title}
                 posterPath={movie.poster_path}
+                onClick={() => handleMovieClick(movie.id)}
+                onAddToWatched={async () => {
+                  if (!session) {
+                    router.push("/login");
+                    return;
+                  }
+                  const res = await fetch("/api/watched", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      type: "add",
+                      movieId: movie.id,
+                      title: movie.title,
+                      coverImage: movie.poster_path,
+                    }),
+                  });
+                  if (res.ok) {
+                    // You might want to show a success toast here
+                  }
+                }}
               />
             ))}
           </MovieGrid>

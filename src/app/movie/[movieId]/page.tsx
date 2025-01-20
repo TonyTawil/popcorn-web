@@ -50,6 +50,7 @@ export default function MovieDetailsPage() {
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [showAllCast, setShowAllCast] = useState(false);
   const [similarMovies, setSimilarMovies] = useState<Movie[]>([]);
+  const [isInWatched, setIsInWatched] = useState(false);
 
   useEffect(() => {
     const fetchMovieDetails = async () => {
@@ -97,6 +98,27 @@ export default function MovieDetailsPage() {
     checkWatchlist();
   }, [session, movieId]);
 
+  useEffect(() => {
+    const checkWatched = async () => {
+      if (!session?.user) return;
+
+      try {
+        const res = await fetch("/api/watched");
+        const data = await res.json();
+
+        if (res.ok) {
+          setIsInWatched(
+            data.watched.some((movie: any) => movie.movieId === Number(movieId))
+          );
+        }
+      } catch (err) {
+        console.error("Error checking watched list:", err);
+      }
+    };
+
+    checkWatched();
+  }, [session, movieId]);
+
   const handleWatchlistToggle = async () => {
     if (!session) {
       // Redirect to login page with return URL
@@ -127,6 +149,38 @@ export default function MovieDetailsPage() {
     } catch (err) {
       console.error("Error updating watchlist:", err);
       // You might want to show an error toast/notification here
+    }
+  };
+
+  const handleAddToWatched = async () => {
+    if (!session) {
+      router.push(`/login?returnUrl=/movie/${movieId}`);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/watched", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "add",
+          movieId: Number(movieId),
+          title: data?.movie.title,
+          coverImage: data?.movie.poster_path,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update watched list");
+      }
+
+      setIsInWatched(true);
+      // If the movie was in watchlist, it will be removed automatically by the API
+      setIsInWatchlist(false);
+    } catch (err) {
+      console.error("Error updating watched list:", err);
     }
   };
 
@@ -233,16 +287,27 @@ export default function MovieDetailsPage() {
                 </a>
               )}
 
-              <button
-                onClick={handleWatchlistToggle}
-                className="border border-primary hover:bg-primary/10 text-primary px-6 py-2 rounded-full transition-colors"
-              >
-                {session
-                  ? isInWatchlist
-                    ? "Remove from Watchlist"
-                    : "Add to Watchlist"
-                  : "Sign in to add to Watchlist"}
-              </button>
+              {!isInWatched && (
+                <button
+                  onClick={handleAddToWatched}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full transition-colors"
+                >
+                  {session ? "Mark as Watched" : "Sign in to mark as watched"}
+                </button>
+              )}
+
+              {!isInWatched && (
+                <button
+                  onClick={handleWatchlistToggle}
+                  className="border border-primary hover:bg-primary/10 text-primary px-6 py-2 rounded-full transition-colors"
+                >
+                  {session
+                    ? isInWatchlist
+                      ? "Remove from Watchlist"
+                      : "Add to Watchlist"
+                    : "Sign in to add to Watchlist"}
+                </button>
+              )}
             </div>
           </div>
         </div>
