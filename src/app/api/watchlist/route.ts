@@ -3,12 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.config';
 import User from '@/models/User';
 import connectDB from '@/db/mongodb';
-
-interface WatchlistMovie {
-  movieId: string;
-  title: string;
-  coverImage: string;
-}
+import type { WatchlistMovie } from '@/types/user';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,7 +72,8 @@ export async function POST(req: Request) {
           );
         }
 
-        user.watchList.push({ movieId, title, coverImage });
+        const newMovie: WatchlistMovie = { movieId, title, coverImage };
+        user.watchList.push(newMovie);
         await user.save();
 
         return NextResponse.json({

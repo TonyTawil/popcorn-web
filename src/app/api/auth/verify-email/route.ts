@@ -8,10 +8,7 @@ export async function GET(req: Request) {
     const token = searchParams.get('token');
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Verification token is required' },
-        { status: 400 }
-      );
+      return NextResponse.redirect(new URL('/verify-email?error=no-token', req.url));
     }
 
     await connectDB();
@@ -29,44 +26,22 @@ export async function GET(req: Request) {
       });
 
       if (verifiedUser && verifiedUser.isEmailVerified) {
-        return NextResponse.json({
-          message: 'Email already verified',
-          user: {
-            id: verifiedUser._id,
-            email: verifiedUser.email,
-            name: `${verifiedUser.firstName} ${verifiedUser.lastName}`,
-            verified: true
-          }
-        });
+        return NextResponse.redirect(new URL('/login?message=already-verified', req.url));
       }
 
-      return NextResponse.json(
-        { error: 'Invalid or expired verification token' },
-        { status: 400 }
-      );
+      return NextResponse.redirect(new URL('/verify-email?error=invalid-token', req.url));
     }
 
     // Update user verification status
     user.isEmailVerified = true;
+    // Clear the verification token after successful verification
+    user.emailVerificationToken = undefined;
+    user.emailVerificationTokenExpiry = undefined;
     await user.save();
 
-    return NextResponse.json({
-      message: 'Email verified successfully',
-      user: {
-        id: user._id,
-        email: user.email,
-        name: `${user.firstName} ${user.lastName}`,
-        verified: true
-      }
-    });
+    return NextResponse.redirect(new URL('/login?message=verification-success', req.url));
   } catch (error) {
     console.error('Verification error:', error);
-    return NextResponse.json(
-      { 
-        error: 'An error occurred during email verification',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    return NextResponse.redirect(new URL('/verify-email?error=server-error', req.url));
   }
 } 
