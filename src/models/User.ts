@@ -22,8 +22,6 @@ export interface IUser extends Document {
   watched: IMovieList[];
   createdAt: Date;
   updatedAt: Date;
-  tempLoginToken?: string;
-  tempLoginTokenExpiry?: Date;
 }
 
 const movieListSchema = new mongoose.Schema<IMovieList>(
@@ -56,15 +54,7 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     isGoogleAccount: { type: Boolean, default: false },
     watchList: [movieListSchema],
-    watched: [movieListSchema],
-    tempLoginToken: { 
-      type: String,
-      select: false
-    },
-    tempLoginTokenExpiry: { 
-      type: Date,
-      select: false
-    },
+    watched: [movieListSchema]
   },
   { timestamps: true }
 );
@@ -73,8 +63,6 @@ userSchema.index({
   emailVerificationToken: 1, 
   emailVerificationTokenExpiry: 1 
 });
-
-userSchema.index({ tempLoginTokenExpiry: 1 }, { expireAfterSeconds: 0 });
 
 const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 export default User; 
