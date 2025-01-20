@@ -10,6 +10,7 @@ import type { Movie } from "@/types/movie";
 import Avatar from "@/components/ui/Avatar";
 import { MovieCard } from "@/components/movies/MovieCard";
 import { Loader } from "@/components/ui/Loader";
+import ReviewSection from "@/components/reviews/ReviewSection";
 
 interface MovieDetails extends Movie {
   backdrop_path: string;
@@ -376,6 +377,8 @@ export default function MovieDetailsPage() {
             </MovieGrid>
           </section>
         )}
+
+        <ReviewSection movieId={Number(movieId)} />
       </div>
     </div>
   );
