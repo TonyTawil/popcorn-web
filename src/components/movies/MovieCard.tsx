@@ -1,11 +1,11 @@
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import { XMarkIcon, EyeIcon } from "@heroicons/react/24/outline";
+import { MoviePoster } from "./MoviePoster";
 
 interface MovieCardProps {
   id: number;
   title: string;
-  posterPath: string;
+  posterPath: string | null;
   onRemove?: () => void;
   onClick?: () => void;
   listType?: "watchlist" | "watched";
@@ -61,19 +61,13 @@ export function MovieCard({
     onAddToWatched();
   };
 
-  const imageUrl = posterPath.startsWith("http")
-    ? posterPath
-    : `https://image.tmdb.org/t/p/w500${posterPath}`;
-
   return (
     <div className="relative group cursor-pointer" onClick={onClick}>
       <div className="aspect-[2/3] relative overflow-hidden rounded-lg">
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          className="object-cover transition-transform group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        <MoviePoster
+          title={title}
+          posterPath={posterPath}
+          className="w-full h-full transition-transform group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
           {onRemove && (
