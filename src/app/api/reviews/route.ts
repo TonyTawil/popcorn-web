@@ -20,7 +20,6 @@ export async function GET(req: Request) {
     await connectDB();
     const reviews = await Review.find({ movieId })
       .populate('userId', 'username profilePicture')
-      .populate('replies.userId', 'username profilePicture')
       .sort({ createdAt: -1 });
 
     return NextResponse.json(reviews);
@@ -64,6 +63,7 @@ export async function POST(req: Request) {
       userId: session.user.id,
       rating,
       reviewText,
+      createdAt: new Date()
     });
 
     await review.save();
@@ -71,7 +71,10 @@ export async function POST(req: Request) {
     const populatedReview = await Review.findById(review._id)
       .populate('userId', 'username profilePicture');
 
-    return NextResponse.json(populatedReview);
+    return NextResponse.json({
+      review: populatedReview,
+      message: 'Review added successfully'
+    });
   } catch (error) {
     console.error('Error adding review:', error);
     return NextResponse.json(
