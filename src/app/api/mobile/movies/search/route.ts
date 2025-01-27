@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 
-export const runtime = 'edge'
-
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
-    const { query } = await request.json()
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.get('query')
 
     if (!query) {
       return NextResponse.json(
@@ -13,10 +12,10 @@ export async function POST(request: Request) {
       )
     }
 
-    const tmdbResponse = await fetch(
+    const response = await fetch(
       `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`
     )
-    const data = await tmdbResponse.json()
+    const data = await response.json()
     
     return NextResponse.json(data)
   } catch (error) {
