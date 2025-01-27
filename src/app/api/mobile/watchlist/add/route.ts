@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server'
 import User from '@/models/User'
 import connectDB from '@/db/mongodb'
-import { WatchlistMovie } from '@/types/movie'
+import { WatchlistMovie } from '@/types/watchlist'
 
 export async function POST(req: Request) {
   try {
-    const { userId, movieId, title, posterPath } = await req.json()
+    const { userId, movieId, title, coverImage } = await req.json()
+
+    if (!userId || !movieId || !title) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
+    }
 
     await connectDB()
 
@@ -15,11 +22,6 @@ export async function POST(req: Request) {
         { error: 'User not found' },
         { status: 404 }
       )
-    }
-
-    // Check if watchList exists, if not initialize it
-    if (!user.watchList) {
-      user.watchList = []
     }
 
     // Check if movie already exists in watchlist
@@ -32,19 +34,17 @@ export async function POST(req: Request) {
     }
 
     // Add movie to watchlist
-    const newMovie: WatchlistMovie = {
+    user.watchList.push({
       movieId,
       title,
-      posterPath,
-      addedAt: new Date()
-    }
-    user.watchList.push(newMovie)
+      coverImage
+    })
 
     await user.save()
 
     return NextResponse.json({
       message: 'Movie added to watchlist successfully',
-      movie: newMovie
+      watchList: user.watchList
     })
   } catch (error) {
     console.error('Error adding to watchlist:', error)

@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server'
 import User from '@/models/User'
 import connectDB from '@/db/mongodb'
-import { WatchlistMovie } from '@/types/movie'
+import { WatchlistMovie } from '@/types/watchlist'
 
 export async function POST(req: Request) {
   try {
     const { userId, movieId } = await req.json()
+
+    if (!userId || !movieId) {
+      return NextResponse.json(
+        { error: 'User ID and Movie ID are required' },
+        { status: 400 }
+      )
+    }
 
     await connectDB()
 
@@ -22,7 +29,8 @@ export async function POST(req: Request) {
     await user.save()
 
     return NextResponse.json({
-      message: 'Movie removed from watchlist successfully'
+      message: 'Movie removed from watchlist successfully',
+      watchList: user.watchList
     })
   } catch (error) {
     console.error('Error removing from watchlist:', error)

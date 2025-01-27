@@ -12,14 +12,4 @@ export interface TMDBResponse {
   results: Movie[];
   total_pages: number;
   total_results: number;
-}
-
-export interface MovieListItem {
-  movieId: number;
-  title: string;
-  posterPath: string;
-  addedAt: Date;
-}
-
-export interface WatchlistMovie extends MovieListItem {}
-export interface WatchedMovie extends MovieListItem {} 
+} 
