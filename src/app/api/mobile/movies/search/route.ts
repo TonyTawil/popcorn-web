@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 
-export const dynamic = 'force-dynamic' // This is important for search functionality
+export const runtime = 'edge'
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const query = searchParams.get('query')
+    const { query } = await request.json()
 
     if (!query) {
       return NextResponse.json(
