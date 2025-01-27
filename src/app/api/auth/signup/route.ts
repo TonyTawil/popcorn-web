@@ -78,12 +78,48 @@ export async function POST(req: Request) {
     await resend.emails.send({
       from: process.env.EMAIL_FROM || 'hello@antoinetawil.com',
       to: email,
-      subject: 'Verify your email address',
+      subject: 'Welcome to Popcorn - Verify Your Email',
       html: `
-        <h1>Welcome to Popcorn!</h1>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verificationUrl}">Verify Email</a>
-        <p>This link will expire in 24 hours.</p>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Welcome to Popcorn</title>
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto;">
+              <tr>
+                <td style="padding: 40px 30px; background-color: #ffffff; border-radius: 8px; margin-top: 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #333333; margin: 0; font-size: 24px; font-weight: bold;">Welcome to Popcorn! 🍿</h1>
+                  </div>
+                  
+                  <div style="margin-bottom: 30px; color: #666666; font-size: 16px; line-height: 1.5;">
+                    <p>Thank you for joining Popcorn! We're excited to have you as part of our community.</p>
+                    <p>To get started, please verify your email address by clicking the button below:</p>
+                  </div>
+                  
+                  <div style="text-align: center; margin-bottom: 30px;">
+                    <a href="${verificationUrl}" 
+                       style="display: inline-block; padding: 12px 24px; background-color: #FF4B4B; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 14px;">
+                      Verify Email Address
+                    </a>
+                  </div>
+                  
+                  <div style="margin-bottom: 30px; color: #666666; font-size: 14px; line-height: 1.5;">
+                    <p>This verification link will expire in 24 hours.</p>
+                    <p>If you didn't create an account with Popcorn, you can safely ignore this email.</p>
+                  </div>
+                  
+                  <div style="border-top: 1px solid #eeeeee; padding-top: 20px; color: #999999; font-size: 12px; text-align: center;">
+                    <p>Need help? Contact us at support@popcorn.com</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
       `
     })
 
