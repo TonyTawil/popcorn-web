@@ -12,4 +12,11 @@ export interface TMDBResponse {
   results: Movie[];
   total_pages: number;
   total_results: number;
+}
+
+export interface WatchlistMovie {
+  movieId: number
+  title: string
+  posterPath: string
+  addedAt: Date
 } 
