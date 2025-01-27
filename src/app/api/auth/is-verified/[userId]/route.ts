@@ -3,13 +3,15 @@ import User from '@/models/User';
 import connectDB from '@/db/mongodb';
 
 export async function GET(
-  req: Request,
+  request: Request,
   { params }: { params: { userId: string } }
 ) {
   try {
+    const userId = params.userId;
+
     await connectDB();
     
-    const user = await User.findById(params.userId);
+    const user = await User.findById(userId);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -17,11 +19,19 @@ export async function GET(
       );
     }
 
+    console.log('Verification status for user:', {
+      userId,
+      isEmailVerified: user.isEmailVerified
+    });
+
     return NextResponse.json({
-      isVerified: user.isEmailVerified
+      isEmailVerified: user.isEmailVerified,
+      message: user.isEmailVerified 
+        ? 'Email is verified' 
+        : 'Email is not verified'
     });
   } catch (error) {
-    console.error('Verification check error:', error);
+    console.error('Error checking verification status:', error);
     return NextResponse.json(
       { error: 'Failed to check verification status' },
       { status: 500 }

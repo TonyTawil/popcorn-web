@@ -5,11 +5,11 @@ import connectDB from '@/db/mongodb';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { username, password } = await req.json();
 
     await connectDB();
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ username });
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -17,8 +17,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -26,12 +26,13 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({
+      message: 'Login successful',
       user: {
         id: user._id,
         email: user.email,
         username: user.username,
         name: `${user.firstName} ${user.lastName}`,
-        isEmailVerified: user.isEmailVerified
+        verified: user.isEmailVerified
       }
     });
   } catch (error) {
