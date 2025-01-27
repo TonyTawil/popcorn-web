@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     }
 
     // Check if movie already exists in watchlist
-    const movieExists = user.watchList.some(movie => movie.movieId === movieId)
+    const movieExists = user.watchList.some((movie: WatchlistMovie) => movie.movieId === movieId)
     if (movieExists) {
       return NextResponse.json(
         { error: 'Movie already in watchlist' },
@@ -32,22 +32,19 @@ export async function POST(req: Request) {
     }
 
     // Add movie to watchlist
-    user.watchList.push({
+    const newMovie: WatchlistMovie = {
       movieId,
       title,
       posterPath,
       addedAt: new Date()
-    })
+    }
+    user.watchList.push(newMovie)
 
     await user.save()
 
     return NextResponse.json({
       message: 'Movie added to watchlist successfully',
-      movie: {
-        movieId,
-        title,
-        posterPath
-      }
+      movie: newMovie
     })
   } catch (error) {
     console.error('Error adding to watchlist:', error)
