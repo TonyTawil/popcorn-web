@@ -24,10 +24,10 @@ export async function POST(req: Request) {
     }
 
     // Validate password
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
     if (!passwordRegex.test(password)) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters long and contain both letters and numbers' },
+        { error: 'Password must be at least 8 characters long and contain letters, numbers, and at least one special character (@$!%*?&)' },
         { status: 400 }
       )
     }
