@@ -21,7 +21,12 @@ export async function GET(
     )
     const data = await tmdbResponse.json()
     
-    return NextResponse.json(data)
+    return new NextResponse(JSON.stringify(data), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+      }
+    })
   } catch (error) {
     console.error('Error searching movies:', error)
     return NextResponse.json(
