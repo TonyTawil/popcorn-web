@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import { Resend } from 'resend'
 import User from '@/models/User'
 import connectDB from '@/db/mongodb'
-import { generateEmailToken, sendVerificationEmail } from '@/lib/auth'
+import { generateEmailToken } from '@/lib/auth'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: Request) {
   try {
@@ -66,20 +69,32 @@ export async function POST(req: Request) {
         : `https://avatar.iran.liara.run/public/girl?username=${username}`,
       isEmailVerified: false,
       emailVerificationToken: verificationToken,
-      emailVerificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      emailVerificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      watchList: []
     })
 
-    // Send verification email
+    // Send verification email using Resend
     const verificationUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${verificationToken}`
-    await sendVerificationEmail(email, verificationUrl)
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'hello@antoinetawil.com',
+      to: email,
+      subject: 'Verify your email address',
+      html: `
+        <h1>Welcome to Popcorn!</h1>
+        <p>Please click the link below to verify your email address:</p>
+        <a href="${verificationUrl}">Verify Email</a>
+        <p>This link will expire in 24 hours.</p>
+      `
+    })
 
     return NextResponse.json({
-      message: 'User created successfully',
+      message: 'User created successfully. Please check your email to verify your account.',
       user: {
         id: user._id,
         email: user.email,
         username: user.username,
         name: `${user.firstName} ${user.lastName}`,
+        verified: false
       }
     })
   } catch (error) {
