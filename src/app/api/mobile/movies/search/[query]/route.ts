@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
-export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
+export const revalidate = 0
 
 export async function GET(
   request: Request,
@@ -17,16 +18,12 @@ export async function GET(
     }
 
     const tmdbResponse = await fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`
+      `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}`,
+      { next: { revalidate: 0 } }
     )
     const data = await tmdbResponse.json()
     
-    return new NextResponse(JSON.stringify(data), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
-      }
-    })
+    return NextResponse.json(data)
   } catch (error) {
     console.error('Error searching movies:', error)
     return NextResponse.json(
