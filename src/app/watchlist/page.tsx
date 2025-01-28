@@ -14,22 +14,40 @@ interface WatchlistMovie {
 
 export default function WatchlistPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.replace("/login?returnUrl=/watchlist");
+    },
+  });
   const [movies, setMovies] = useState<WatchlistMovie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Redirect if not authenticated
-    if (status === "unauthenticated") {
-      router.replace("/login?returnUrl=/watchlist");
-      return;
-    }
-
     const fetchWatchlist = async () => {
+      console.log("Session status:", status);
+      console.log("Session data:", session);
+
       try {
-        const res = await fetch("/api/watchlist");
+        const res = await fetch("/api/watchlist", {
+          headers: {
+            "Content-Type": "application/json",
+            ...(session?.user && {
+              Authorization: `Bearer ${session.user.id}`,
+            }),
+          },
+          credentials: "include",
+        });
+
+        console.log("Watchlist response status:", res.status);
         const data = await res.json();
+        console.log("Watchlist response data:", data);
+
+        if (res.status === 401) {
+          router.replace("/login?returnUrl=/watchlist");
+          return;
+        }
 
         if (!res.ok) {
           throw new Error(data.error || "Failed to fetch watchlist");
@@ -37,16 +55,17 @@ export default function WatchlistPage() {
 
         setMovies(data.watchList);
       } catch (err) {
+        console.error("Fetch watchlist error:", err);
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (status === "authenticated") {
+    if (status === "authenticated" && session?.user?.id) {
       fetchWatchlist();
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   const handleRemoveFromWatchlist = async (movieId: number) => {
     try {
@@ -55,11 +74,17 @@ export default function WatchlistPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           type: "remove",
           movieId,
         }),
       });
+
+      if (res.status === 401) {
+        router.replace("/login?returnUrl=/watchlist");
+        return;
+      }
 
       if (!res.ok) {
         const data = await res.json();

@@ -7,10 +7,18 @@ import type { WatchlistMovie } from '@/types/user';
 
 export const dynamic = 'force-dynamic';
 
+async function getSessionUser() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return null;
+  }
+  return session.user;
+}
+
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getSessionUser();
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -18,16 +26,16 @@ export async function GET() {
     }
 
     await connectDB();
-    const user = await User.findById(session.user.id);
     
-    if (!user) {
+    const dbUser = await User.findById(user.id).select('watchList');
+    if (!dbUser) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ watchList: user.watchList });
+    return NextResponse.json({ watchList: dbUser.watchList || [] });
   } catch (error) {
     console.error('Get watchlist error:', error);
     return NextResponse.json(
