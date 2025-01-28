@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const movieIds: number[] = await request.json();
     
     // Fetch all credits in parallel
-    const creditsPromises = movieIds.map(id => getMovieCredits(id));
+    const creditsPromises = movieIds.map(id => getMovieCredits(id.toString()));
     const creditsResults = await Promise.all(creditsPromises);
     
     // Create a map of movieId -> credits
