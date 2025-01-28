@@ -12,6 +12,7 @@ interface ReviewFormProps {
   initialData?: {
     rating: number;
     reviewText: string;
+    reviewId: string;
   };
   isEditing?: boolean;
 }
@@ -38,16 +39,18 @@ export default function ReviewForm({
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/reviews", {
-        method: "POST",
+      const url = isEditing ? `/api/reviews` : "/api/reviews";
+      const method = isEditing ? "PUT" : "POST";
+      const body = isEditing
+        ? { reviewId: initialData?.reviewId, rating, reviewText }
+        : { movieId, rating, reviewText };
+
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          movieId,
-          rating,
-          reviewText,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();

@@ -24,15 +24,20 @@ export default function ReviewItem({
 
   const handleDelete = async () => {
     try {
-      const res = await fetch(`/api/reviews/${review._id.toString()}`, {
+      const res = await fetch(`/api/reviews?reviewId=${review._id}`, {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Failed to delete review");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error);
+      }
 
-      onDelete(review._id.toString());
+      onDelete(review._id);
+      setShowConfirmDelete(false);
     } catch (error) {
       console.error("Error deleting review:", error);
+      // Optionally show an error message to the user
     }
   };
 
@@ -41,10 +46,14 @@ export default function ReviewItem({
       <ReviewForm
         movieId={review.movieId}
         initialData={{
+          reviewId: review._id,
           rating: review.rating,
           reviewText: review.reviewText || "",
         }}
-        onSubmit={onUpdate}
+        onSubmit={(updatedReview) => {
+          onUpdate(updatedReview);
+          setIsEditing(false);
+        }}
         onCancel={() => setIsEditing(false)}
         isEditing
       />

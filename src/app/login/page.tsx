@@ -23,7 +23,7 @@ export default function LoginPage() {
   }, [status, router]);
 
   // Show loading or nothing while checking auth status
-  if (status === "loading" || status === "authenticated") {
+  if (status === "loading") {
     return null;
   }
 
@@ -41,13 +41,13 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError(result.error);
-      } else {
+        setIsLoading(false);
+      } else if (result?.ok) {
         router.push("/");
         router.refresh();
       }
     } catch (err) {
       setError("An error occurred during login");
-    } finally {
       setIsLoading(false);
     }
   };

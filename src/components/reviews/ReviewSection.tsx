@@ -13,16 +13,18 @@ interface ReviewSectionProps {
 }
 
 export default function ReviewSection({ movieId }: ReviewSectionProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [reviews, setReviews] = useState<IReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [movieId]);
+  const checkUserReview = (reviewsList: IReview[]) => {
+    return reviewsList.some(
+      (review) => review.userId.toString() === session?.user?.id
+    );
+  };
 
   const fetchReviews = async () => {
     try {
@@ -32,11 +34,7 @@ export default function ReviewSection({ movieId }: ReviewSectionProps) {
       if (!res.ok) throw new Error(data.error);
 
       setReviews(data);
-      setUserHasReviewed(
-        data.some(
-          (review: IReview) => review.userId.toString() === session?.user?.id
-        )
-      );
+      setUserHasReviewed(checkUserReview(data));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load reviews");
     } finally {
@@ -44,24 +42,46 @@ export default function ReviewSection({ movieId }: ReviewSectionProps) {
     }
   };
 
+  // Fetch reviews when component mounts or when session/movieId changes
+  useEffect(() => {
+    fetchReviews();
+  }, [movieId, session]);
+
   const handleReviewSubmit = async (newReview: IReview) => {
-    setReviews([newReview, ...reviews]);
-    setUserHasReviewed(true);
-    setShowForm(false);
+    if (newReview && newReview._id) {
+      setReviews((prevReviews) => {
+        const updatedReviews = [newReview, ...prevReviews];
+        setUserHasReviewed(checkUserReview(updatedReviews));
+        return updatedReviews;
+      });
+      setShowForm(false);
+    }
   };
 
   const handleReviewDelete = async (reviewId: string) => {
-    setReviews(reviews.filter((review) => review._id !== reviewId));
-    setUserHasReviewed(false);
+    setReviews((prevReviews) => {
+      const updatedReviews = prevReviews.filter(
+        (review) => review._id !== reviewId
+      );
+      setUserHasReviewed(checkUserReview(updatedReviews));
+      return updatedReviews;
+    });
   };
 
   const handleReviewUpdate = async (updatedReview: IReview) => {
-    setReviews(
-      reviews.map((review) =>
+    setReviews((prevReviews) => {
+      const updatedReviews = prevReviews.map((review) =>
         review._id === updatedReview._id ? updatedReview : review
-      )
-    );
+      );
+      setUserHasReviewed(checkUserReview(updatedReviews));
+      return updatedReviews;
+    });
   };
+
+  // Don't show anything until we know the session status
+  if (status === "loading") {
+    return null;
+  }
 
   const averageRating =
     reviews.length > 0

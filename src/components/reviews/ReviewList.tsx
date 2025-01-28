@@ -17,17 +17,37 @@ export default function ReviewList({
 }: ReviewListProps) {
   const { data: session } = useSession();
 
+  // Add console.log to debug the values
+  console.log("Session user ID:", session?.user?.id);
+  console.log(
+    "Reviews:",
+    reviews.map((r) => ({
+      reviewId: r._id,
+      userId: r.userId,
+      userIdString: r.userId.toString(),
+    }))
+  );
+
   return (
     <div className="space-y-6">
-      {reviews.map((review) => (
-        <ReviewItem
-          key={review._id.toString()}
-          review={review}
-          onDelete={onDelete}
-          onUpdate={onUpdate}
-          isOwner={review.userId.toString() === session?.user?.id}
-        />
-      ))}
+      {reviews.map((review) => {
+        const isOwner = session?.user?.id === review.userId.toString();
+        console.log("Is owner check:", {
+          sessionUserId: session?.user?.id,
+          reviewUserId: review.userId.toString(),
+          isOwner,
+        });
+
+        return (
+          <ReviewItem
+            key={review._id.toString()}
+            review={review}
+            onDelete={onDelete}
+            onUpdate={onUpdate}
+            isOwner={isOwner}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -19,10 +19,18 @@ export async function GET(req: Request) {
 
     await connectDB();
     const reviews = await Review.find({ movieId })
-      .populate('userId', 'username profilePicture')
+      .populate('userId', '_id username profilePicture')
       .sort({ createdAt: -1 });
 
-    return NextResponse.json(reviews);
+    const transformedReviews = reviews.map(review => {
+      const plainReview = review.toObject();
+      if (plainReview.userId && plainReview.userId._id) {
+        plainReview.userId = plainReview.userId._id;
+      }
+      return plainReview;
+    });
+
+    return NextResponse.json(transformedReviews);
   } catch (error) {
     console.error('Error fetching reviews:', error);
     return NextResponse.json(
@@ -69,12 +77,15 @@ export async function POST(req: Request) {
     await review.save();
 
     const populatedReview = await Review.findById(review._id)
-      .populate('userId', 'username profilePicture');
+      .populate('userId', '_id username profilePicture');
 
-    return NextResponse.json({
-      review: populatedReview,
-      message: 'Review added successfully'
-    });
+    // Transform the review to ensure userId is just the ID
+    const plainReview = populatedReview.toObject();
+    if (plainReview.userId && plainReview.userId._id) {
+      plainReview.userId = plainReview.userId._id;
+    }
+
+    return NextResponse.json(plainReview);
   } catch (error) {
     console.error('Error adding review:', error);
     return NextResponse.json(
@@ -86,25 +97,101 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { reviewId, rating, reviewText } = await req.json();
+
     await connectDB();
-    const body = await req.json();
-    
-    // Implement update review logic
-    return NextResponse.json({ message: 'Review updated' });
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return NextResponse.json(
+        { error: 'Review not found' },
+        { status: 404 }
+      );
+    }
+
+    if (review.userId.toString() !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized to update this review' },
+        { status: 403 }
+      );
+    }
+
+    review.rating = rating;
+    review.reviewText = reviewText;
+    await review.save();
+
+    const populatedReview = await Review.findById(review._id)
+      .populate('userId', '_id username profilePicture');
+
+    // Transform the review to ensure userId is just the ID
+    const plainReview = populatedReview.toObject();
+    if (plainReview.userId && plainReview.userId._id) {
+      plainReview.userId = plainReview.userId._id;
+    }
+
+    return NextResponse.json(plainReview);
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Error updating review:', error);
+    return NextResponse.json(
+      { error: 'Failed to update review' },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(req: Request) {
   try {
-    await connectDB();
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const reviewId = searchParams.get('reviewId');
-    
-    // Implement delete review logic
-    return NextResponse.json({ message: 'Review deleted' });
+
+    if (!reviewId) {
+      return NextResponse.json(
+        { error: 'Review ID is required' },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return NextResponse.json(
+        { error: 'Review not found' },
+        { status: 404 }
+      );
+    }
+
+    if (review.userId.toString() !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized to delete this review' },
+        { status: 403 }
+      );
+    }
+
+    await review.deleteOne();
+
+    return NextResponse.json({ message: 'Review deleted successfully' });
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Error deleting review:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete review' },
+      { status: 500 }
+    );
   }
 } 

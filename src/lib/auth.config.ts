@@ -10,41 +10,22 @@ export const authOptions: NextAuthOptions = {
       name: 'Credentials',
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-        isVerification: { label: "Is Verification", type: "text" }
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        try {
-          if (!credentials?.email) {
-            throw new Error('Email is required')
-          }
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Please enter both email and password')
+        }
 
+        try {
           await connectDB()
           
           const user = await User.findOne({ email: credentials.email })
           
           if (!user) {
-            throw new Error('No user found')
+            throw new Error('Invalid email or password')
           }
 
-          // Handle email verification login
-          if (credentials.isVerification === 'true') {
-            if (user.isEmailVerified) {
-              return {
-                id: user._id.toString(),
-                email: user.email,
-                name: `${user.firstName} ${user.lastName}`,
-                image: user.profilePicture,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                username: user.username,
-                isEmailVerified: user.isEmailVerified
-              }
-            }
-            throw new Error('Email not verified')
-          }
-
-          // Regular password login
           if (!user.isEmailVerified) {
             throw new Error('Please verify your email first')
           }
@@ -52,7 +33,7 @@ export const authOptions: NextAuthOptions = {
           const isValid = await bcrypt.compare(credentials.password, user.password)
 
           if (!isValid) {
-            throw new Error('Invalid credentials')
+            throw new Error('Invalid email or password')
           }
 
           return {
@@ -65,9 +46,8 @@ export const authOptions: NextAuthOptions = {
             username: user.username,
             isEmailVerified: user.isEmailVerified
           }
-        } catch (error) {
-          console.error('Auth error:', error)
-          throw error
+        } catch (error: any) {
+          throw new Error(error.message || 'Authentication failed')
         }
       }
     })
@@ -108,6 +88,5 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
-  debug: true, // Enable debug mode to see more detailed logs
   secret: process.env.NEXTAUTH_SECRET,
 } 
