@@ -85,7 +85,12 @@ export default function ReviewSection({ movieId }: ReviewSectionProps) {
 
   const averageRating =
     reviews.length > 0
-      ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+      ? Number(
+          (
+            reviews.reduce((acc, review) => acc + review.rating, 0) /
+            reviews.length
+          ).toFixed(1)
+        )
       : 0;
 
   return (
@@ -96,17 +101,26 @@ export default function ReviewSection({ movieId }: ReviewSectionProps) {
           <div className="flex items-center mt-2">
             <div className="flex">
               {[1, 2, 3, 4, 5].map((star) => (
-                <span key={star}>
-                  {star <= Math.round(averageRating) ? (
+                <div key={star} className="relative w-5 h-5">
+                  <StarOutlineIcon
+                    className="h-5 w-5 text-yellow-400"
+                    style={{ position: "absolute", zIndex: 10 }}
+                  />
+                  <div
+                    className="absolute inset-0 overflow-hidden"
+                    style={{
+                      width: `${getStarFillPercentage(star, averageRating)}%`,
+                      zIndex: 20,
+                    }}
+                  >
                     <StarIcon className="h-5 w-5 text-yellow-400" />
-                  ) : (
-                    <StarOutlineIcon className="h-5 w-5 text-yellow-400" />
-                  )}
-                </span>
+                  </div>
+                </div>
               ))}
             </div>
             <span className="ml-2 text-gray-400">
-              ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+              {averageRating.toFixed(1)} ({reviews.length}{" "}
+              {reviews.length === 1 ? "review" : "reviews"})
             </span>
           </div>
         </div>
@@ -141,4 +155,10 @@ export default function ReviewSection({ movieId }: ReviewSectionProps) {
       )}
     </section>
   );
+}
+
+function getStarFillPercentage(star: number, rating: number): number {
+  if (rating >= star) return 100;
+  if (rating < star - 1) return 0;
+  return (rating % 1) * 100;
 }
