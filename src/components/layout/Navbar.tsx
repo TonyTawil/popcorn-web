@@ -14,6 +14,7 @@ import {
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useMovieSearch } from "@/hooks/useMovieSearch";
 import { SearchResultsView } from "@/components/movies/SearchResultsView";
+import Image from "next/image";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -91,8 +92,14 @@ export default function Navbar() {
                   href="/"
                   className="flex items-center gap-2 text-white hover:text-accent transition-colors"
                 >
-                  <FilmIcon className="h-8 w-8" />
-                  <span className="text-xl font-bold">Popcorn</span>
+                  <Image
+                    src="/logo.png"
+                    alt="Popcorn"
+                    width={120}
+                    height={30}
+                    className="h-8 w-auto"
+                    priority
+                  />
                 </Link>
               </div>
 
@@ -269,8 +276,14 @@ export default function Navbar() {
               href="/"
               className="flex items-center gap-2 text-white hover:text-accent transition-colors"
             >
-              <FilmIcon className="h-8 w-8" />
-              <span className="text-xl font-bold">Popcorn</span>
+              <Image
+                src="/logo.png"
+                alt="Popcorn"
+                width={120}
+                height={30}
+                className="h-8 w-auto"
+                priority
+              />
             </Link>
           </div>
 

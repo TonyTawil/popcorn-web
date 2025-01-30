@@ -9,6 +9,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Popcorn - Movie Database",
   description: "Discover and track your favorite movies",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/icon.png" }],
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -18,6 +23,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/icon.png" />
+        <link rel="apple-touch-icon" href="/icon.png" />
+      </head>
       <body className={inter.className}>
         <AuthProvider>
           <Navbar />
