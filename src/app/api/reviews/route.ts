@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
     await connectDB();
     const reviews = await Review.find({ movieId })
-      .populate('userId', '_id username profilePicture')
+      .populate('userId', '_id username')
       .sort({ createdAt: -1 });
 
     const transformedReviews = reviews.map(review => {
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     await review.save();
 
     const populatedReview = await Review.findById(review._id)
-      .populate('userId', '_id username profilePicture');
+      .populate('userId', '_id username');
 
     // Transform the review to ensure userId is just the ID
     const plainReview = populatedReview.toObject();
@@ -129,7 +129,7 @@ export async function PUT(req: Request) {
     await review.save();
 
     const populatedReview = await Review.findById(review._id)
-      .populate('userId', '_id username profilePicture');
+      .populate('userId', '_id username');
 
     // Transform the review to ensure userId is just the ID
     const plainReview = populatedReview.toObject();

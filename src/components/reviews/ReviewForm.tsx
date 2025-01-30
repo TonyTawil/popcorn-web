@@ -64,6 +64,22 @@ export default function ReviewForm({
     }
   };
 
+  const handleStarClick = (star: number, e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const halfStar = x < rect.width / 2;
+    const newRating = halfStar ? star - 0.5 : star;
+    setRating(newRating);
+    setHoveredRating(0); // Reset hover state when clicking
+  };
+
+  const handleStarHover = (star: number, e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const halfStar = x < rect.width / 2;
+    setHoveredRating(halfStar ? star - 0.5 : star);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="mb-8 bg-gray-800 p-6 rounded-lg">
       <div className="mb-4">
@@ -73,19 +89,35 @@ export default function ReviewForm({
             <button
               key={star}
               type="button"
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHoveredRating(star)}
+              onClick={(e) => handleStarClick(star, e)}
+              onMouseMove={(e) => handleStarHover(star, e)}
               onMouseLeave={() => setHoveredRating(0)}
-              className="focus:outline-none"
+              className="relative focus:outline-none w-8 h-8"
             >
-              {star <= (hoveredRating || rating) ? (
-                <StarIcon className="h-8 w-8 text-yellow-400" />
-              ) : (
-                <StarOutlineIcon className="h-8 w-8 text-yellow-400" />
-              )}
+              <div className="relative w-8 h-8">
+                <StarOutlineIcon
+                  className="h-8 w-8 text-yellow-400"
+                  style={{ position: "absolute", zIndex: 10 }}
+                />
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{
+                    width: `${getStarFillPercentage(
+                      star,
+                      hoveredRating || rating
+                    )}%`,
+                    zIndex: 20,
+                  }}
+                >
+                  <StarIcon className="h-8 w-8 text-yellow-400" />
+                </div>
+              </div>
             </button>
           ))}
         </div>
+        <span className="text-gray-400 mt-1 block">
+          {(hoveredRating || rating).toFixed(1)} out of 5 stars
+        </span>
       </div>
 
       <div className="mb-4">
@@ -127,4 +159,10 @@ export default function ReviewForm({
       </div>
     </form>
   );
+}
+
+function getStarFillPercentage(star: number, rating: number): number {
+  if (rating >= star) return 100;
+  if (rating < star - 1) return 0;
+  return (rating % 1) * 100;
 }

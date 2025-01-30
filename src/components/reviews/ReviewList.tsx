@@ -17,30 +17,46 @@ export default function ReviewList({
 }: ReviewListProps) {
   const { data: session } = useSession();
 
-  // Add console.log to debug the values
+  const getUserId = (userId: any): string => {
+    if (!userId) return "";
+    if (typeof userId === "string") return userId;
+    if (typeof userId === "object" && "_id" in userId)
+      return userId._id.toString();
+    if (typeof userId?.toString === "function") return userId.toString();
+    return "";
+  };
+
+  // Safer debug logging
   console.log("Session user ID:", session?.user?.id);
   console.log(
     "Reviews:",
     reviews.map((r) => ({
-      reviewId: r._id,
-      userId: r.userId,
-      userIdString: r.userId.toString(),
+      reviewId: r._id?.toString() || "",
+      userId: getUserId(r.userId),
+      raw: r.userId,
     }))
   );
 
   return (
     <div className="space-y-6">
       {reviews.map((review) => {
-        const isOwner = session?.user?.id === review.userId.toString();
+        const reviewUserId = getUserId(review.userId);
+        const sessionUserId = session?.user?.id || "";
+        // Explicitly convert to boolean
+        const isOwner = Boolean(
+          sessionUserId && reviewUserId && sessionUserId === reviewUserId
+        );
+
+        // Safer debug logging
         console.log("Is owner check:", {
-          sessionUserId: session?.user?.id,
-          reviewUserId: review.userId.toString(),
+          sessionUserId,
+          reviewUserId,
           isOwner,
         });
 
         return (
           <ReviewItem
-            key={review._id.toString()}
+            key={review._id?.toString() || Math.random().toString()}
             review={review}
             onDelete={onDelete}
             onUpdate={onUpdate}

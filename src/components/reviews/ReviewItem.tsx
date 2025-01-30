@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { StarIcon } from "@heroicons/react/24/solid";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+  StarIcon as StarOutlineIcon,
+} from "@heroicons/react/24/outline";
 import ReviewForm from "./ReviewForm";
 import type { IReview } from "@/models/Review";
 
@@ -11,6 +15,22 @@ interface ReviewItemProps {
   onDelete: (reviewId: string) => void;
   onUpdate: (review: IReview) => void;
   isOwner: boolean;
+}
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(date));
+}
+
+function getUserName(userId: any): string {
+  if (typeof userId === "object" && userId !== null) {
+    if ("username" in userId) return userId.username;
+    if ("_id" in userId) return "User";
+  }
+  return "User";
 }
 
 export default function ReviewItem({
@@ -64,20 +84,36 @@ export default function ReviewItem({
     <div className="bg-gray-800 rounded-lg p-6">
       <div className="flex justify-between items-start">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <StarIcon
-                  key={i}
-                  className={`h-5 w-5 ${
-                    i < review.rating ? "text-yellow-400" : "text-gray-600"
-                  }`}
-                />
-              ))}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-white">
+                {getUserName(review.userId)}
+              </span>
+              <span className="text-gray-400 text-sm">
+                {formatDate(review.createdAt)}
+              </span>
             </div>
-            <span className="text-gray-400 text-sm">
-              {new Date(review.createdAt).toLocaleDateString()}
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <div key={star} className="relative w-5 h-5">
+                    <StarOutlineIcon
+                      className="h-5 w-5 text-yellow-400"
+                      style={{ position: "absolute", zIndex: 10 }}
+                    />
+                    <div
+                      className="absolute inset-0 overflow-hidden"
+                      style={{
+                        width: `${getStarFillPercentage(star, review.rating)}%`,
+                        zIndex: 20,
+                      }}
+                    >
+                      <StarIcon className="h-5 w-5 text-yellow-400" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           {review.reviewText && (
             <p className="text-white mt-2">{review.reviewText}</p>
@@ -127,4 +163,10 @@ export default function ReviewItem({
       )}
     </div>
   );
+}
+
+function getStarFillPercentage(star: number, rating: number): number {
+  if (rating >= star) return 100;
+  if (rating < star - 1) return 0;
+  return (rating % 1) * 100;
 }
