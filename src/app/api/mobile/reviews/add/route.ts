@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import Review from '@/models/Review'
+import User from '@/models/User'
 import connectDB from '@/db/mongodb'
 import { ReviewType } from '@/types/review'
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { userId, movieId, rating, reviewText } = await req.json()
+    const { userId, movieId, rating, reviewText } = await request.json()
 
     if (!userId || !movieId || rating === undefined) {
       return NextResponse.json(
@@ -16,31 +17,30 @@ export async function POST(req: Request) {
 
     await connectDB()
 
-    // Check if user has already reviewed this movie
+    // Check for existing review
     const existingReview = await Review.findOne({ userId, movieId })
     if (existingReview) {
       return NextResponse.json(
-        { error: 'User has already reviewed this movie' },
+        { error: 'You have already reviewed this movie' },
         { status: 409 }
       )
     }
 
     const review = new Review({
-      movieId,
       userId,
+      movieId,
       rating,
       reviewText,
-      replies: [],
-      likes: [],
-      likesCount: 0
+      createdAt: new Date()
     })
 
     await review.save()
 
-    return NextResponse.json({
-      message: 'Review added successfully',
-      review
-    })
+    // Populate the user information before sending response
+    const populatedReview = await Review.findById(review._id)
+      .populate('userId', '_id username')
+
+    return NextResponse.json(populatedReview)
   } catch (error) {
     console.error('Error adding review:', error)
     return NextResponse.json(

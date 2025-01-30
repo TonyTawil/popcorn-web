@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import Review from '@/models/Review'
+import User from '@/models/User'
 import connectDB from '@/db/mongodb'
 import { ReviewType } from '@/types/review'
 
@@ -9,11 +10,21 @@ export async function GET(
 ) {
   try {
     const movieId = parseInt(params.movieId)
+    if (isNaN(movieId)) {
+      return NextResponse.json(
+        { error: 'Invalid movie ID' },
+        { status: 400 }
+      )
+    }
 
     await connectDB()
 
+    if (!User) {
+      throw new Error('User model not registered')
+    }
+
     const reviews = await Review.find({ movieId })
-      .populate('userId', 'username firstName lastName')
+      .populate('userId', '_id username')
       .sort({ createdAt: -1 })
 
     return NextResponse.json(reviews)
