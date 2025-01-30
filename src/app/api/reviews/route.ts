@@ -24,9 +24,6 @@ export async function GET(req: Request) {
 
     const transformedReviews = reviews.map(review => {
       const plainReview = review.toObject();
-      if (plainReview.userId && plainReview.userId._id) {
-        plainReview.userId = plainReview.userId._id;
-      }
       return plainReview;
     });
 
@@ -79,12 +76,7 @@ export async function POST(req: Request) {
     const populatedReview = await Review.findById(review._id)
       .populate('userId', '_id username');
 
-    // Transform the review to ensure userId is just the ID
     const plainReview = populatedReview.toObject();
-    if (plainReview.userId && plainReview.userId._id) {
-      plainReview.userId = plainReview.userId._id;
-    }
-
     return NextResponse.json(plainReview);
   } catch (error) {
     console.error('Error adding review:', error);
@@ -131,12 +123,7 @@ export async function PUT(req: Request) {
     const populatedReview = await Review.findById(review._id)
       .populate('userId', '_id username');
 
-    // Transform the review to ensure userId is just the ID
     const plainReview = populatedReview.toObject();
-    if (plainReview.userId && plainReview.userId._id) {
-      plainReview.userId = plainReview.userId._id;
-    }
-
     return NextResponse.json(plainReview);
   } catch (error) {
     console.error('Error updating review:', error);
