@@ -33,12 +33,15 @@ export default function AllMoviesPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const categoryTitle = category ? categoryTitles[category] : "";
 
   useEffect(() => {
     const loadMovies = async () => {
-      setIsLoading(true);
+      if (page === 1) {
+        setIsLoading(true);
+      }
       setError(null);
       try {
         const res = await fetch(`/api/movies?type=${category}&page=${page}`, {
@@ -58,6 +61,7 @@ export default function AllMoviesPage() {
         setError(err instanceof Error ? err.message : "Failed to load movies");
       } finally {
         setIsLoading(false);
+        setIsLoadingMore(false);
       }
     };
 
@@ -72,6 +76,7 @@ export default function AllMoviesPage() {
 
   const loadMore = () => {
     if (page < totalPages) {
+      setIsLoadingMore(true);
       setPage((prev) => prev + 1);
     }
   };
@@ -84,7 +89,7 @@ export default function AllMoviesPage() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && page === 1) {
     return <Loader />;
   }
 
@@ -93,7 +98,7 @@ export default function AllMoviesPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">{categoryTitle}</h1>
 
-        {!isLoading && movies.length > 0 && (
+        {movies.length > 0 && (
           <MovieGrid>
             {movies.map((movie) => (
               <MovieCard
@@ -127,7 +132,9 @@ export default function AllMoviesPage() {
             ))}
           </MovieGrid>
         )}
-        {isLoading && <MovieGridSkeleton count={20} />}
+
+        {isLoading && page === 1 && <MovieGridSkeleton count={20} />}
+
         {error && (
           <div className="text-red-500 text-center mt-4 p-4 bg-red-500/10 rounded-lg">
             {error}
@@ -136,12 +143,19 @@ export default function AllMoviesPage() {
 
         {page < totalPages && !isLoading && (
           <div className="flex justify-center mt-8">
-            <button
-              onClick={loadMore}
-              className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-full transition-colors"
-            >
-              Load More
-            </button>
+            {isLoadingMore ? (
+              <div className="flex items-center gap-2 px-6 py-2">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-primary">Loading...</span>
+              </div>
+            ) : (
+              <button
+                onClick={loadMore}
+                className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-full transition-colors"
+              >
+                Load More
+              </button>
+            )}
           </div>
         )}
       </div>
