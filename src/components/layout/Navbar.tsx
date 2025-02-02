@@ -10,11 +10,13 @@ import {
   Bars3Icon,
   XMarkIcon,
   MagnifyingGlassIcon,
+  TvIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useMovieSearch } from "@/hooks/useMovieSearch";
 import { SearchResultsView } from "@/components/movies/SearchResultsView";
 import Image from "next/image";
+import { useMode } from "@/contexts/ModeContext";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -28,6 +30,7 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const { results, isLoading, error } = useMovieSearch(searchQuery);
+  const { mode, toggleMode } = useMode();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -83,7 +86,11 @@ export default function Navbar() {
   if (showFullResults) {
     return (
       <>
-        <header className="bg-primary relative z-40">
+        <header
+          className={`${
+            mode === "movies" ? "bg-primary" : "bg-tv-primary"
+          } relative z-40 transition-colors duration-300`}
+        >
           <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               {/* Logo and brand */}
@@ -123,7 +130,11 @@ export default function Navbar() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search movies..."
-                        className="w-full px-4 py-2 rounded-lg bg-primary-dark text-white border border-gray-700 focus:outline-none focus:border-accent"
+                        className={`w-full px-4 py-2 rounded-lg text-white border border-gray-700 focus:outline-none focus:border-accent ${
+                          mode === "movies"
+                            ? "bg-primary-dark"
+                            : "bg-tv-primary-dark"
+                        }`}
                         autoFocus
                       />
                       {searchQuery && results.length > 0 && (
@@ -218,7 +229,13 @@ export default function Navbar() {
 
                     {/* Dropdown Menu */}
                     {showDropdown && (
-                      <div className="absolute right-0 mt-2 w-48 py-2 bg-primary-dark rounded-lg shadow-xl z-50">
+                      <div
+                        className={`absolute right-0 mt-2 w-48 py-2 rounded-lg shadow-xl z-50 ${
+                          mode === "movies"
+                            ? "bg-primary-dark"
+                            : "bg-tv-primary-dark"
+                        }`}
+                      >
                         <div className="px-4 py-2 border-b border-primary">
                           <p className="text-sm text-gray-300">Signed in as</p>
                           <p className="text-sm font-medium text-white truncate">
@@ -244,12 +261,74 @@ export default function Navbar() {
                     </Link>
                     <Link
                       href="/signup"
-                      className="bg-white hover:bg-gray-100 text-primary px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                      className={`${
+                        mode === "movies"
+                          ? "bg-white text-primary hover:bg-gray-100"
+                          : "bg-white text-tv-primary hover:bg-gray-100"
+                      } px-4 py-2 rounded-lg transition-colors text-sm font-medium`}
                     >
                       Get Started
                     </Link>
                   </div>
                 )}
+
+                {/* Mode Toggle Button */}
+                <button
+                  onClick={toggleMode}
+                  className={`group relative flex items-center h-8 px-1 rounded-full transition-all duration-300 ${
+                    mode === "movies"
+                      ? "bg-primary/20 hover:bg-primary/30"
+                      : "bg-tv-primary/20 hover:bg-tv-primary/30"
+                  }`}
+                >
+                  {/* Track */}
+                  <div className="relative w-[120px]">
+                    {/* Background */}
+                    <div
+                      className={`absolute inset-0 rounded-full transition-colors duration-300 ${
+                        mode === "movies" ? "bg-primary" : "bg-tv-primary"
+                      }`}
+                    />
+
+                    {/* Labels Container - Behind Slider */}
+                    <div className="relative flex justify-between items-center px-2 h-6">
+                      <span
+                        className={`text-xs font-medium transition-all duration-300 ${
+                          mode === "movies" ? "text-white" : "text-white/50"
+                        }`}
+                      >
+                        Movies
+                      </span>
+                      <span
+                        className={`text-xs font-medium transition-all duration-300 ${
+                          mode === "movies" ? "text-white/50" : "text-white"
+                        }`}
+                      >
+                        TV
+                      </span>
+                    </div>
+
+                    {/* Slider - Above Labels */}
+                    <div
+                      className={`absolute top-0 bottom-0 w-1/2 rounded-full bg-white shadow-lg transition-all duration-300 transform ${
+                        mode === "movies" ? "left-0" : "left-1/2"
+                      } flex items-center justify-center`}
+                    >
+                      {/* Icon Container */}
+                      <div className="relative w-4 h-4 flex items-center justify-center">
+                        {mode === "movies" ? (
+                          <FilmIcon
+                            className={`w-4 h-4 transition-all duration-300 text-primary`}
+                          />
+                        ) : (
+                          <TvIcon
+                            className={`w-4 h-4 transition-all duration-300 text-tv-primary`}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
           </nav>
@@ -267,7 +346,11 @@ export default function Navbar() {
   }
 
   return (
-    <header className="bg-primary relative z-40">
+    <header
+      className={`${
+        mode === "movies" ? "bg-primary" : "bg-tv-primary"
+      } relative z-40 transition-colors duration-300`}
+    >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and brand */}
@@ -308,7 +391,11 @@ export default function Navbar() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
                     placeholder="Search movies..."
-                    className="w-full px-4 py-2 rounded-lg bg-primary-dark text-white border border-gray-700 focus:outline-none focus:border-accent"
+                    className={`w-full px-4 py-2 rounded-lg text-white border border-gray-700 focus:outline-none focus:border-accent ${
+                      mode === "movies"
+                        ? "bg-primary-dark"
+                        : "bg-tv-primary-dark"
+                    }`}
                     autoFocus
                   />
                   {searchQuery && results.length > 0 && !showFullResults && (
@@ -415,7 +502,13 @@ export default function Navbar() {
 
                 {/* Dropdown Menu */}
                 {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 py-2 bg-primary-dark rounded-lg shadow-xl z-50">
+                  <div
+                    className={`absolute right-0 mt-2 w-48 py-2 rounded-lg shadow-xl z-50 ${
+                      mode === "movies"
+                        ? "bg-primary-dark"
+                        : "bg-tv-primary-dark"
+                    }`}
+                  >
                     <div className="px-4 py-2 border-b border-primary">
                       <p className="text-sm text-gray-300">Signed in as</p>
                       <p className="text-sm font-medium text-white truncate">
@@ -441,12 +534,74 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-white hover:bg-gray-100 text-primary px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                  className={`${
+                    mode === "movies"
+                      ? "bg-white text-primary hover:bg-gray-100"
+                      : "bg-white text-tv-primary hover:bg-gray-100"
+                  } px-4 py-2 rounded-lg transition-colors text-sm font-medium`}
                 >
                   Get Started
                 </Link>
               </div>
             )}
+
+            {/* Mode Toggle Button */}
+            <button
+              onClick={toggleMode}
+              className={`group relative flex items-center h-8 px-1 rounded-full transition-all duration-300 ${
+                mode === "movies"
+                  ? "bg-primary/20 hover:bg-primary/30"
+                  : "bg-tv-primary/20 hover:bg-tv-primary/30"
+              }`}
+            >
+              {/* Track */}
+              <div className="relative w-[120px]">
+                {/* Background */}
+                <div
+                  className={`absolute inset-0 rounded-full transition-colors duration-300 ${
+                    mode === "movies" ? "bg-primary" : "bg-tv-primary"
+                  }`}
+                />
+
+                {/* Labels Container - Behind Slider */}
+                <div className="relative flex justify-between items-center px-2 h-6">
+                  <span
+                    className={`text-xs font-medium transition-all duration-300 ${
+                      mode === "movies" ? "text-white" : "text-white/50"
+                    }`}
+                  >
+                    Movies
+                  </span>
+                  <span
+                    className={`text-xs font-medium transition-all duration-300 ${
+                      mode === "movies" ? "text-white/50" : "text-white"
+                    }`}
+                  >
+                    TV
+                  </span>
+                </div>
+
+                {/* Slider - Above Labels */}
+                <div
+                  className={`absolute top-0 bottom-0 w-1/2 rounded-full bg-white shadow-lg transition-all duration-300 transform ${
+                    mode === "movies" ? "left-0" : "left-1/2"
+                  } flex items-center justify-center`}
+                >
+                  {/* Icon Container */}
+                  <div className="relative w-4 h-4 flex items-center justify-center">
+                    {mode === "movies" ? (
+                      <FilmIcon
+                        className={`w-4 h-4 transition-all duration-300 text-primary`}
+                      />
+                    ) : (
+                      <TvIcon
+                        className={`w-4 h-4 transition-all duration-300 text-tv-primary`}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -462,7 +617,9 @@ export default function Navbar() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
                   placeholder="Search movies..."
-                  className="w-full px-4 py-2 rounded-lg bg-primary-dark text-white border border-gray-700 focus:outline-none focus:border-accent"
+                  className={`w-full px-4 py-2 rounded-lg text-white border border-gray-700 focus:outline-none focus:border-accent ${
+                    mode === "movies" ? "bg-primary-dark" : "bg-tv-primary-dark"
+                  }`}
                 />
               </form>
               {searchQuery && results.length > 0 && !showFullResults && (
@@ -538,7 +695,11 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/signup"
-                    className="bg-white hover:bg-gray-100 text-primary px-4 py-2 rounded-lg transition-colors text-sm font-medium w-fit"
+                    className={`${
+                      mode === "movies"
+                        ? "bg-white text-primary hover:bg-gray-100"
+                        : "bg-white text-tv-primary hover:bg-gray-100"
+                    } px-4 py-2 rounded-lg transition-colors text-sm font-medium`}
                   >
                     Get Started
                   </Link>

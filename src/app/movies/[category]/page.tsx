@@ -8,18 +8,29 @@ import { MovieCard } from "@/components/movies/MovieCard";
 import { Loader } from "@/components/ui/Loader";
 import type { Movie } from "@/types/movie";
 import { useSession } from "next-auth/react";
+import { useMode } from "@/contexts/ModeContext";
 
 type CategoryTitles = {
   [key: string]: string;
+  // Movie categories
   trending: string;
   now_playing: string;
   upcoming: string;
+  // TV categories
+  airing_today: string;
+  popular: string;
+  top_rated: string;
 };
 
 const categoryTitles: CategoryTitles = {
-  trending: "Trending Movies",
+  // Movie categories
+  trending: "Trending",
   now_playing: "Now Playing",
-  upcoming: "Upcoming Movies",
+  upcoming: "Upcoming",
+  // TV categories
+  airing_today: "Airing Today",
+  popular: "Popular Shows",
+  top_rated: "Top Rated",
 };
 
 export default function AllMoviesPage() {
@@ -27,38 +38,42 @@ export default function AllMoviesPage() {
   const router = useRouter();
   const category = params.category as string;
   const session = useSession();
+  const { mode } = useMode();
 
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [items, setItems] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const categoryTitle = category ? categoryTitles[category] : "";
 
   useEffect(() => {
-    const loadMovies = async () => {
+    const loadItems = async () => {
       if (page === 1) {
         setIsLoading(true);
       }
       setError(null);
       try {
-        const res = await fetch(`/api/movies?type=${category}&page=${page}`, {
-          method: "GET",
-        });
+        const res = await fetch(
+          `/api/movies?type=${category}&page=${page}&mode=${mode}`,
+          {
+            method: "GET",
+          }
+        );
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.error || "Failed to load movies");
+          throw new Error(data.error || "Failed to load content");
         }
 
-        setMovies((prev) =>
+        setItems((prev) =>
           page === 1 ? data.results : [...prev, ...data.results]
         );
         setTotalPages(data.total_pages);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load movies");
+        setError(err instanceof Error ? err.message : "Failed to load content");
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
@@ -66,9 +81,9 @@ export default function AllMoviesPage() {
     };
 
     if (category) {
-      loadMovies();
+      loadItems();
     }
-  }, [category, page]);
+  }, [category, page, mode]);
 
   const handleMovieClick = (movieId: number) => {
     router.push(`/movie/${movieId}`);
@@ -98,9 +113,9 @@ export default function AllMoviesPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">{categoryTitle}</h1>
 
-        {movies.length > 0 && (
+        {items.length > 0 && (
           <MovieGrid>
-            {movies.map((movie) => (
+            {items.map((movie) => (
               <MovieCard
                 key={movie.id}
                 id={movie.id}

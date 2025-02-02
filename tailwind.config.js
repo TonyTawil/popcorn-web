@@ -9,8 +9,18 @@ module.exports = {
     extend: {
       colors: {
         background: "var(--background)",
-        primary: "var(--primary)",
-        "primary-dark": "var(--primary-dark)",
+        primary: {
+          DEFAULT: "#f97316", // Orange
+          dark: "#ea580c",
+          900: "#9a3412",
+          600: "#ea580c",
+        },
+        "tv-primary": {
+          DEFAULT: "#14b8a6", // Turquoise
+          dark: "#0d9488",
+          900: "#134e4a",
+          600: "#0d9488",
+        },
         accent: "var(--accent)",
         white: "var(--white)",
         black: "var(--black)",
