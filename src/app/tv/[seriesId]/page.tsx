@@ -25,6 +25,15 @@ interface TvDetails {
   genres: { id: number; name: string }[];
   created_by: { id: number; name: string }[];
   networks: { id: number; name: string; logo_path: string }[];
+  seasons: {
+    id: number;
+    name: string;
+    episode_count: number;
+    season_number: number;
+    air_date: string;
+    poster_path: string | null;
+    overview: string;
+  }[];
 }
 
 interface CastMember {
@@ -168,12 +177,6 @@ export default function TvSeriesPage() {
               )}
             </div>
 
-            {/* Overview */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-2">Overview</h2>
-              <p className="text-gray-300">{series.overview}</p>
-            </div>
-
             {/* Networks */}
             {series.networks.length > 0 && (
               <div className="flex gap-4 mb-8">
@@ -190,6 +193,57 @@ export default function TvSeriesPage() {
                 ))}
               </div>
             )}
+
+            {/* Seasons Section */}
+            {series.seasons.length > 0 && (
+              <section className="mt-12">
+                <h2 className="text-2xl font-bold text-white mb-6">Seasons</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {series.seasons.map((season) => (
+                    <div
+                      key={season.id}
+                      onClick={() =>
+                        router.push(
+                          `/tv/${series.id}/season/${season.season_number}`
+                        )
+                      }
+                      className="cursor-pointer group"
+                    >
+                      <div className="relative aspect-[2/3] mb-2">
+                        {season.poster_path ? (
+                          <Image
+                            src={`https://image.tmdb.org/t/p/w342${season.poster_path}`}
+                            alt={season.name}
+                            fill
+                            className="rounded-lg object-cover transition-transform group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-sm">
+                              {season.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-white font-medium text-sm truncate">
+                        {season.name}
+                      </h3>
+                      <p className="text-gray-400 text-xs">
+                        {season.episode_count} Episodes
+                        {season.air_date &&
+                          ` • ${new Date(season.air_date).getFullYear()}`}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Overview */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-2">Overview</h2>
+              <p className="text-gray-300">{series.overview}</p>
+            </div>
           </div>
         </div>
 
