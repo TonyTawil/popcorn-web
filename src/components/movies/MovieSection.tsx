@@ -48,7 +48,7 @@ export default function MovieSection({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-white mb-8">{title}</h2>
         <Link
-          href={`/${mode}/${category}`}
+          href={`/${mode === "movies" ? "movies" : "tvs"}/${category}`}
           className={`transition-colors ${
             mode === "movies"
               ? "text-primary hover:text-primary-dark"
