@@ -12,6 +12,7 @@ import { useMode } from "@/contexts/ModeContext";
 
 type CategoryTitles = {
   [key: string]: string;
+
   // Movie categories
   trending: string;
   now_playing: string;
