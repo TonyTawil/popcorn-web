@@ -109,7 +109,12 @@ export default function SeasonPage() {
             {season.episodes.map((episode) => (
               <div
                 key={episode.id}
-                className="bg-gray-800/50 rounded-lg overflow-hidden"
+                onClick={() =>
+                  router.push(
+                    `/tv/${seriesId}/season/${seasonNumber}/episode/${episode.episode_number}`
+                  )
+                }
+                className="bg-gray-800/50 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors"
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Episode Still */}
